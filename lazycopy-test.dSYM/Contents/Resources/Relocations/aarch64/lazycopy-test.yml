@@ -1,0 +1,14 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     lazycopy-test
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003910, symSize: 0x1B8 }
+  - { offsetInCU: 0x41, offset: 0x41, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100003910, symSize: 0x1B8 }
+  - { offsetInCU: 0xD1, offset: 0xD1, size: 0x8, addend: 0x0, symName: _run_tests, symObjAddr: 0x1B8, symBinAddr: 0x100003AC8, symSize: 0x2B8 }
+  - { offsetInCU: 0x1F3, offset: 0x1F3, size: 0x8, addend: 0x0, symName: _time_us, symObjAddr: 0x470, symBinAddr: 0x100003D80, symSize: 0x60 }
+  - { offsetInCU: 0x26, offset: 0x2CC, size: 0x8, addend: 0x0, symName: _chunk_startup, symObjAddr: 0x0, symBinAddr: 0x100003DE0, symSize: 0x4 }
+  - { offsetInCU: 0x42, offset: 0x2E8, size: 0x8, addend: 0x0, symName: _chunk_startup, symObjAddr: 0x0, symBinAddr: 0x100003DE0, symSize: 0x4 }
+  - { offsetInCU: 0x57, offset: 0x2FD, size: 0x8, addend: 0x0, symName: _chunk_alloc, symObjAddr: 0x4, symBinAddr: 0x100003DE4, symSize: 0x64 }
+  - { offsetInCU: 0x7F, offset: 0x325, size: 0x8, addend: 0x0, symName: _chunk_copy_eager, symObjAddr: 0x68, symBinAddr: 0x100003E48, symSize: 0x3C }
+  - { offsetInCU: 0xB5, offset: 0x35B, size: 0x8, addend: 0x0, symName: _chunk_copy_lazy, symObjAddr: 0xA4, symBinAddr: 0x100003E84, symSize: 0x24 }
+...

@@ -13,7 +13,7 @@
  * This function will be called at startup so you can set up a signal handler.
  */
 void chunk_startup() {
-  // TODO: Implement this function
+  // TODO: Implement this function...
 }
 
 /**

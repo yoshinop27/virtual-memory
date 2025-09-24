@@ -13,8 +13,6 @@
  * This function will be called at startup so you can set up a signal handler.
  */
 void chunk_startup() {
-  List *chunks = (List*)malloc(sizeof(List));
-  chunks->head = NULL;
   // TODO: Implement this function...
 }
 
@@ -77,7 +75,8 @@ void* chunk_copy_lazy(void* chunk) {
   void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
   if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
   if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
-
+  chunk_add(chunk, chunks);
+  chunk_add(copy, chunks);
   // 3. Keep some record of both lazy copies so you can make them writable later.
   //    At a minimum, you'll need to know where the chunk begins and ends.
 
@@ -92,11 +91,11 @@ void chunk_add(void* chunk, List* list) {
   // create a new lazy_t struct to hold the start and end of the chunk
   lazy_t* lazy_chunk = (lazy_t*)malloc(sizeof(lazy_t));
   lazy_chunk->start = chunk;
-  lazy_chunk->end = chunk + CHUNKSIZE;
+  lazy_chunk->end = (uint8_t*)chunk + CHUNKSIZE;
   // add the new lazy_t struct to the head of the linked list if empty
   if (list->head == NULL) {
-    list->head = chunk;
-    chunk->next = NULL;
+    list->head = lazy_chunk;
+    lazy_chunk->next = NULL;
   } else {
     // otherwise, add it to the end of the linked list
     for (lazy_t* curr = list->head; curr != NULL; curr = curr->next) {

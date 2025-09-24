@@ -16,12 +16,11 @@ void* chunk_copy_eager(void* chunk);
 // This function should return a copy of a chunk created with lazy copying
 void* chunk_copy_lazy(void* chunk);
 
-
 // Struct to store begin and end adress for original and copy
-typedef struct {
+typedef struct lazy {
   void* start;
   void* end;
-  struct lazy_t* next;
+  struct lazy* next;
 } lazy_t;
 
 // Linked list to store data for all chunks
@@ -31,5 +30,8 @@ typedef struct {
 
 // This function lets you add the address for a protectd chunk to our list
 void chunk_add(void* chunk, List* list);
+
+// This initializes a global linked list to store all lazy chunks
+List chunks = {.head = NULL};
 
 #endif

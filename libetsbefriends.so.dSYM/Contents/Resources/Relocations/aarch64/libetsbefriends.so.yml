@@ -2,9 +2,9 @@
 triple:          'arm64-apple-darwin'
 binary-path:     libetsbefriends.so
 relocations:
-  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _init, symObjAddr: 0x0, symBinAddr: 0x3DB8, symSize: 0x68 }
-  - { offsetInCU: 0x4D, offset: 0x4D, size: 0x8, addend: 0x0, symName: _messages, symObjAddr: 0x1B0, symBinAddr: 0x8000, symSize: 0x0 }
-  - { offsetInCU: 0x6C, offset: 0x6C, size: 0x8, addend: 0x0, symName: _init, symObjAddr: 0x0, symBinAddr: 0x3DB8, symSize: 0x68 }
-  - { offsetInCU: 0x90, offset: 0x90, size: 0x8, addend: 0x0, symName: _seg_handler, symObjAddr: 0x68, symBinAddr: 0x3E20, symSize: 0x44 }
-  - { offsetInCU: 0xD0, offset: 0xD0, size: 0x8, addend: 0x0, symName: _get_msg, symObjAddr: 0xAC, symBinAddr: 0x3E64, symSize: 0x40 }
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _init, symObjAddr: 0x0, symBinAddr: 0x3D5C, symSize: 0x98 }
+  - { offsetInCU: 0x4D, offset: 0x4D, size: 0x8, addend: 0x0, symName: _messages, symObjAddr: 0x1E0, symBinAddr: 0x8000, symSize: 0x0 }
+  - { offsetInCU: 0x73, offset: 0x73, size: 0x8, addend: 0x0, symName: _init, symObjAddr: 0x0, symBinAddr: 0x3D5C, symSize: 0x98 }
+  - { offsetInCU: 0x97, offset: 0x97, size: 0x8, addend: 0x0, symName: _seg_handler, symObjAddr: 0x98, symBinAddr: 0x3DF4, symSize: 0x40 }
+  - { offsetInCU: 0xD7, offset: 0xD7, size: 0x8, addend: 0x0, symName: _get_msg, symObjAddr: 0xD8, symBinAddr: 0x3E34, symSize: 0x40 }
 ...

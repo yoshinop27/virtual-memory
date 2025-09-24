@@ -30,7 +30,7 @@ __attribute__((constructor)) void init() {
 void seg_handler(int signal, siginfo_t* info, void* ctx) {
   printf("%s", get_msg(messages));
   // Why: after a SIGSEGV we must end the program;
-  _exit(0);
+  _exit(1);
 }
 
 // generate random message

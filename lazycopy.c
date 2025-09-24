@@ -71,9 +71,8 @@ void* chunk_copy_eager(void* chunk) {
  *   the original chunk.
  */
 void* chunk_copy_lazy(void* chunk) {
-  // Just to make sure your code works, this implementation currently calls the eager copy version
-  return chunk_copy_eager(chunk);
-
+  // Cite online man page
+  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED);
   // Your implementation should do the following:
   // 1. Use mremap to create a duplicate mapping of the chunk passed in
   // 2. Mark both mappings as read-only

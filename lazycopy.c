@@ -9,11 +9,49 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+// Initialize global list
+List chunks = { .head = NULL };
+// Declare seg_handler function
+void seg_handler(int signal, siginfo_t* info, void* ctx);
+
+
 /**
  * This function will be called at startup so you can set up a signal handler.
  */
 void chunk_startup() {
-  // TODO: Implement this function...
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_sigaction = seg_handler;
+  sa.sa_flags = SA_SIGINFO;
+  // Check sigaction for errors
+  if (sigaction(SIGSEGV, &sa, NULL) != 0) {
+    perror("sigaction failed");
+    exit(2);
+  }
+}
+
+// Signal handler for segmentation faults
+void seg_handler(int signal, siginfo_t* info, void* ctx){
+  // Get adress of writing caused segfault
+  intptr_t addr = (intptr_t)info->si_addr;
+  lazy_t* curr = chunks.head;
+  // Check if adress is within any of the protected chunks
+  while(curr != NULL){
+    if(addr >= (intptr_t)curr->start && addr < (intptr_t)curr->end){
+      // Create local array and copy contents of chunk to it
+      uint8_t temp[CHUNKSIZE];
+      memcpy(temp, curr->start, CHUNKSIZE);
+      // Override protected memory to make it writable
+      mmap(curr->start, CHUNKSIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS |MAP_SHARED | MAP_FIXED, -1, 0);
+      // Restore Chunk to new memory
+      memcpy(curr->start, temp, CHUNKSIZE);
+      return;
+    }
+    curr = curr->next;
+  }
+  // If we get here, the segfault was not in a protected chunk. Exit with error.
+  fprintf(stderr, "Segmentation fault at address %p\n", info->si_addr);
+  exit(1);
 }
 
 /**
@@ -71,17 +109,32 @@ void* chunk_copy_eager(void* chunk) {
  *   the original chunk.
  */
 void* chunk_copy_lazy(void* chunk) {
-  // Just to make sure your code works, this implementation currently calls the eager copy version
-  return chunk_copy_eager(chunk);
+  // Cite online man page
+  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
+  if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
+  if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
+  chunk_add(chunk, &chunks);
+  chunk_add(copy, &chunks);
+  return copy;
+}
 
-  // Your implementation should do the following:
-  // 1. Use mremap to create a duplicate mapping of the chunk passed in
-  // 2. Mark both mappings as read-only
-  // 3. Keep some record of both lazy copies so you can make them writable later.
-  //    At a minimum, you'll need to know where the chunk begins and ends.
-
-  // Later, if either copy is written to you will need to:
-  // 1. Save the contents of the chunk elsewhere (a local array works well)
-  // 2. Use mmap to make a writable mapping at the location of the chunk that was written
-  // 3. Restore the contents of the chunk to the new writable mapping
+void chunk_add(void* chunk, List* list) {
+  // create a new lazy_t struct to hold the start and end of the chunk
+  lazy_t* lazy_chunk = (lazy_t*)malloc(sizeof(lazy_t));
+  lazy_chunk->start = chunk;
+  lazy_chunk->end = (uint8_t*)chunk + CHUNKSIZE;
+  // add the new lazy_t struct to the head of the linked list if empty
+  if (list->head == NULL) {
+    list->head = lazy_chunk;
+    lazy_chunk->next = NULL;
+  } else {
+    // otherwise, add it to the end of the linked list
+    for (lazy_t* curr = list->head; curr != NULL; curr = curr->next) {
+      if (curr->next == NULL) {
+        curr->next = lazy_chunk;
+        lazy_chunk->next = NULL;
+        break;
+      }
+    }
+  }
 }

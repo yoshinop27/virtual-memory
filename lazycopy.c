@@ -16,6 +16,9 @@ void chunk_startup() {
   // TODO: Implement this function...
 }
 
+// Initialize global list
+List chunks = { .head = NULL };
+
 /**
  * This function should return a new chunk of memory for use.
  *
@@ -75,10 +78,8 @@ void* chunk_copy_lazy(void* chunk) {
   void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
   if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
   if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
-  chunk_add(chunk, chunks);
-  chunk_add(copy, chunks);
-  // 3. Keep some record of both lazy copies so you can make them writable later.
-  //    At a minimum, you'll need to know where the chunk begins and ends.
+  chunk_add(chunk, &chunks);
+  chunk_add(copy, &chunks);
 
   // Later, if either copy is written to you will need to:
   // 1. Save the contents of the chunk elsewhere (a local array works well)

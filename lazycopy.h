@@ -31,7 +31,4 @@ typedef struct {
 // This function lets you add the address for a protectd chunk to our list
 void chunk_add(void* chunk, List* list);
 
-// This initializes a global linked list to store all lazy chunks
-List chunks = {.head = NULL};
-
 #endif

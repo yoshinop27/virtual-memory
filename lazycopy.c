@@ -9,15 +9,50 @@
 #include <sys/mman.h>
 #include <unistd.h>
 
+// Initialize global list
+List chunks = { .head = NULL };
+// Declare seg_handler function
+void seg_handler(int signal, siginfo_t* info, void* ctx);
+
+
 /**
  * This function will be called at startup so you can set up a signal handler.
  */
 void chunk_startup() {
-  // TODO: Implement this function...
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_sigaction = seg_handler;
+  sa.sa_flags = SA_SIGINFO;
+  // Check sigaction for errors
+  if (sigaction(SIGSEGV, &sa, NULL) != 0) {
+    perror("sigaction failed");
+    exit(2);
+  }
 }
 
-// Initialize global list
-List chunks = { .head = NULL };
+// Signal handler for segmentation faults
+void seg_handler(int signal, siginfo_t* info, void* ctx){
+  // Get adress of writing caused segfault
+  intptr_t addr = (intptr_t)info->si_addr;
+  lazy_t* curr = chunks.head;
+  // Check if adress is within any of the protected chunks
+  while(curr != NULL){
+    if(addr >= (intptr_t)curr->start && addr < (intptr_t)curr->end){
+      // Create local array and copy contents of chunk to it
+      uint8_t temp[CHUNKSIZE];
+      memcpy(temp, curr->start, CHUNKSIZE);
+      // Override protected memory to make it writable
+      mmap(curr->start, CHUNKSIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS |MAP_SHARED | MAP_FIXED, -1, 0);
+      // Restore Chunk to new memory
+      memcpy(curr->start, temp, CHUNKSIZE);
+      return;
+    }
+    curr = curr->next;
+  }
+  // If we get here, the segfault was not in a protected chunk. Exit with error.
+  fprintf(stderr, "Segmentation fault at address %p\n", info->si_addr);
+  exit(1);
+}
 
 /**
  * This function should return a new chunk of memory for use.
@@ -80,11 +115,6 @@ void* chunk_copy_lazy(void* chunk) {
   if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
   chunk_add(chunk, &chunks);
   chunk_add(copy, &chunks);
-
-  // Later, if either copy is written to you will need to:
-  // 1. Save the contents of the chunk elsewhere (a local array works well)
-  // 2. Use mmap to make a writable mapping at the location of the chunk that was written
-  // 3. Restore the contents of the chunk to the new writable mapping
   return copy;
 }
 

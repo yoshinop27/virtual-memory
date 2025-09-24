@@ -72,9 +72,10 @@ void* chunk_copy_eager(void* chunk) {
  */
 void* chunk_copy_lazy(void* chunk) {
   // Cite online man page
-  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED);
-  // Your implementation should do the following:
-  // 1. Use mremap to create a duplicate mapping of the chunk passed in
+  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
+  mprotect(copy, CHUNKSIZE, PROT_READ);
+  mprotect(chunk, CHUNKSIZE, PROT_READ);
+
   // 2. Mark both mappings as read-only
   // 3. Keep some record of both lazy copies so you can make them writable later.
   //    At a minimum, you'll need to know where the chunk begins and ends.
@@ -83,4 +84,5 @@ void* chunk_copy_lazy(void* chunk) {
   // 1. Save the contents of the chunk elsewhere (a local array works well)
   // 2. Use mmap to make a writable mapping at the location of the chunk that was written
   // 3. Restore the contents of the chunk to the new writable mapping
+  return copy;
 }

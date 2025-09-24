@@ -13,6 +13,8 @@
  * This function will be called at startup so you can set up a signal handler.
  */
 void chunk_startup() {
+  List *chunks = (List*)malloc(sizeof(List));
+  chunks->head = NULL;
   // TODO: Implement this function...
 }
 
@@ -73,10 +75,9 @@ void* chunk_copy_eager(void* chunk) {
 void* chunk_copy_lazy(void* chunk) {
   // Cite online man page
   void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
-  mprotect(copy, CHUNKSIZE, PROT_READ);
-  mprotect(chunk, CHUNKSIZE, PROT_READ);
+  if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
+  if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
 
-  // 2. Mark both mappings as read-only
   // 3. Keep some record of both lazy copies so you can make them writable later.
   //    At a minimum, you'll need to know where the chunk begins and ends.
 
@@ -85,4 +86,25 @@ void* chunk_copy_lazy(void* chunk) {
   // 2. Use mmap to make a writable mapping at the location of the chunk that was written
   // 3. Restore the contents of the chunk to the new writable mapping
   return copy;
+}
+
+void chunk_add(void* chunk, List* list) {
+  // create a new lazy_t struct to hold the start and end of the chunk
+  lazy_t* lazy_chunk = (lazy_t*)malloc(sizeof(lazy_t));
+  lazy_chunk->start = chunk;
+  lazy_chunk->end = chunk + CHUNKSIZE;
+  // add the new lazy_t struct to the head of the linked list if empty
+  if (list->head == NULL) {
+    list->head = chunk;
+    chunk->next = NULL;
+  } else {
+    // otherwise, add it to the end of the linked list
+    for (lazy_t* curr = list->head; curr != NULL; curr = curr->next) {
+      if (curr->next == NULL) {
+        curr->next = lazy_chunk;
+        lazy_chunk->next = NULL;
+        break;
+      }
+    }
+  }
 }

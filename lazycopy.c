@@ -10,10 +10,9 @@
 #include <unistd.h>
 
 // Initialize global list
-List chunks = { .head = NULL };
+List chunks = {.head = NULL};
 // Declare seg_handler function
 void seg_handler(int signal, siginfo_t* info, void* ctx);
-
 
 /**
  * This function will be called at startup so you can set up a signal handler.
@@ -31,18 +30,19 @@ void chunk_startup() {
 }
 
 // Signal handler for segmentation faults
-void seg_handler(int signal, siginfo_t* info, void* ctx){
+void seg_handler(int signal, siginfo_t* info, void* ctx) {
   // Get adress of writing caused segfault
   intptr_t addr = (intptr_t)info->si_addr;
   lazy_t* curr = chunks.head;
   // Check if adress is within any of the protected chunks
-  while(curr != NULL){
-    if(addr >= (intptr_t)curr->start && addr < (intptr_t)curr->end){
+  while (curr != NULL) {
+    if (addr >= (intptr_t)curr->start && addr < (intptr_t)curr->end) {
       // Create local array and copy contents of chunk to it
       uint8_t temp[CHUNKSIZE];
       memcpy(temp, curr->start, CHUNKSIZE);
       // Override protected memory to make it writable
-      mmap(curr->start, CHUNKSIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS |MAP_SHARED | MAP_FIXED, -1, 0);
+      mmap(curr->start, CHUNKSIZE, PROT_READ | PROT_WRITE, MAP_ANONYMOUS | MAP_SHARED | MAP_FIXED,
+           -1, 0);
       // Restore Chunk to new memory
       memcpy(curr->start, temp, CHUNKSIZE);
       return;
@@ -108,11 +108,39 @@ void* chunk_copy_eager(void* chunk) {
  * \returns a pointer to the beginning of a new chunk that holds a copy of the values from
  *   the original chunk.
  */
-void* chunk_copy_lazy(void* chunk) {
+
+// Preston, below is the old version, didnt want to delete
+// so you could see the changes I made, but we should
+// delete before final submission
+
+/* void* chunk_copy_lazy(void* chunk) {
   // Cite online man page
   void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
   if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
   if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
+  chunk_add(chunk, &chunks);
+  chunk_add(copy, &chunks);
+  return copy;
+}*/
+
+void* chunk_copy_lazy(void* chunk) {
+  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE);
+  if (copy == MAP_FAILED) {
+    perror("mremap duplicate failed");
+    exit(2);
+  }
+
+  // Make both mappings read-only so the first write triggers SIGSEGV
+  if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) {
+    perror("mprotect (chunk) failed");
+    exit(2);
+  }
+  if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) {
+    perror("mprotect (copy) failed");
+    exit(2);
+  }
+
+  // Track both, so the handler can find which mapping faulted
   chunk_add(chunk, &chunks);
   chunk_add(copy, &chunks);
   return copy;

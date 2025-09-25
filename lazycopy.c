@@ -108,21 +108,6 @@ void* chunk_copy_eager(void* chunk) {
  * \returns a pointer to the beginning of a new chunk that holds a copy of the values from
  *   the original chunk.
  */
-
-// Preston, below is the old version, didnt want to delete
-// so you could see the changes I made, but we should
-// delete before final submission
-
-/* void* chunk_copy_lazy(void* chunk) {
-  // Cite online man page
-  void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE | MREMAP_FIXED, NULL);
-  if (mprotect(copy, CHUNKSIZE, PROT_READ) != 0) exit(1);
-  if (mprotect(chunk, CHUNKSIZE, PROT_READ) != 0) exit(1);
-  chunk_add(chunk, &chunks);
-  chunk_add(copy, &chunks);
-  return copy;
-}*/
-
 void* chunk_copy_lazy(void* chunk) {
   void* copy = mremap(chunk, 0, CHUNKSIZE, MREMAP_MAYMOVE);
   if (copy == MAP_FAILED) {
